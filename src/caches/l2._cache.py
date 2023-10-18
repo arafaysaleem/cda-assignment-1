@@ -9,7 +9,7 @@ class L2Cache(Cache):
         block_size: int,
         cache_size: int,
         replacement_policy: Literal[0, 1],
-        inclusion_policy: Literal[0, 1],
+        inclusion_property: Literal[0, 1],
         next_level: Cache | None = None,
     ):
         super().__init__(
@@ -17,7 +17,7 @@ class L2Cache(Cache):
             block_size,
             cache_size,
             replacement_policy,
-            inclusion_policy,
+            inclusion_property,
             next_level,
         )
 

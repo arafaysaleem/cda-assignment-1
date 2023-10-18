@@ -14,7 +14,7 @@ class Cache(ABC):
         block_size: int,
         cache_size: int,
         replacement_policy: Literal[0, 1],
-        inclusion_policy: Literal[0, 1],
+        inclusion_property: Literal[0, 1],
         next_level: Cache | None = None,
     ):
         self.associativity = associativity
@@ -27,7 +27,7 @@ class Cache(ABC):
             [Block()] * associativity for _ in range(self.sets)
         ]
         self.replacement_policy = replacement_policy
-        self.inclusion_policy = inclusion_policy
+        self.inclusion_property = inclusion_property
         self.sequence_counter = 0
         self.read_hits = 0
         self.read_misses = 0
