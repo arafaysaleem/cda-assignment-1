@@ -11,6 +11,7 @@ class L2Cache(Cache):
         replacement_policy,
         inclusion_property,
         next_level = None,
+        prev_level = None,
     ):
         super().__init__(
             associativity,
@@ -19,6 +20,7 @@ class L2Cache(Cache):
             replacement_policy,
             inclusion_property,
             next_level,
+            prev_level,
         )
 
     # Usually called by upper level cache for write-back of a dirty block

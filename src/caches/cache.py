@@ -16,6 +16,7 @@ class Cache(ABC):
         replacement_policy: int,
         inclusion_property: int,
         next_level: Cache | None = None,
+        prev_level: Cache | None = None,
     ):
         self.associativity = associativity
         self.block_size = block_size
@@ -35,6 +36,7 @@ class Cache(ABC):
         self.write_misses = 0
         self.write_backs = 0
         self.next_level = next_level
+        self.prev_level = prev_level
 
     @abstractmethod
     def write(self, address: str):

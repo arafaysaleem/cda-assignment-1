@@ -31,21 +31,24 @@ def main():
     print(f"INCLUSION PROPERTY:    {'non-inclusive' if inclusion_property == 0 else 'inclusive'}")
     print(f"trace_file:            {trace_file}")
 
-    l2_cache = L2Cache(
-        associativity=l2_assoc,
-        block_size=block_size,
-        cache_size=l2_size,
-        replacement_policy=replacement_policy,
-        inclusion_property=inclusion_property,
-    )
     l1_cache = L1Cache(
         associativity=l1_assoc,
         block_size=block_size,
         cache_size=l1_size,
         replacement_policy=replacement_policy,
         inclusion_property=inclusion_property,
-        next_level=l2_cache,
     )
+    if l2_size > 0:
+        l2_cache = L2Cache(
+            associativity=l2_assoc,
+            block_size=block_size,
+            cache_size=l2_size,
+            replacement_policy=replacement_policy,
+            inclusion_property=inclusion_property,
+            prev_level=l1_cache,
+        )
+        l1_cache.next_level = l2_cache
+    
 
     with open(trace_file, 'r') as file:
         for line in file:
