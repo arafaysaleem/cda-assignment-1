@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
 from math import log2
-from typing import List, Literal
+from typing import List, cast
 from blocks.block import Block
 
 ADDRESS_BITS = 32
@@ -68,8 +68,7 @@ class Cache(ABC):
 
     def write_hit_block(self, set_index: int, block_index: int, block: Block) -> None:
         self.blocks[set_index][block_index] = block.copy_with(
-            sequence_number=self.sequence_counter,
-            is_dirty=True
+            sequence_number=self.sequence_counter, is_dirty=True
         )
         self.write_hits += 1
         if self.replacement_policy == 0:  # only for LRU
@@ -89,8 +88,6 @@ class Cache(ABC):
         victim_block = ways[victim_block_index]
         for i, block in enumerate(ways):
             if block.is_valid is False:
-                if block.is_dirty:
-                    self.write_back(address)
                 victim_block = block
                 victim_block_index = i
                 break
@@ -100,7 +97,22 @@ class Cache(ABC):
 
         if victim_block.is_dirty:
             self.write_back(address)
+        elif (
+            self.inclusion_property == 1
+            and self.prev_level is not None
+            and victim_block.is_valid
+        ):
+            self.prev_level.invalidate(cast(str, victim_block.address))
         return victim_block, victim_block_index
+
+    def invalidate(self, address: str) -> None:
+        tag, set_index = self.get_address_components(address)
+        result = self.get_block(set_index, tag)
+        if result is not None:
+            block, block_index = result
+            self.blocks[set_index][block_index] = block.copy_with(is_valid=False)
+            if self.prev_level is not None:
+                self.prev_level.invalidate(address)
 
     def allocate_block(
         self, set_index: int, tag: str, address: str, is_dirty=False

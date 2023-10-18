@@ -1,4 +1,3 @@
-from typing import Literal
 from .cache import Cache
 
 
@@ -10,7 +9,7 @@ class L1Cache(Cache):
         cache_size,
         replacement_policy,
         inclusion_property,
-        next_level = None,
+        next_level=None,
     ):
         super().__init__(
             associativity,
