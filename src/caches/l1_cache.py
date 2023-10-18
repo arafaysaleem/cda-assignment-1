@@ -5,12 +5,12 @@ from .cache import Cache
 class L1Cache(Cache):
     def __init__(
         self,
-        associativity: int,
-        block_size: int,
-        cache_size: int,
-        replacement_policy: Literal[0, 1],
-        inclusion_property: Literal[0, 1],
-        next_level: Cache | None = None,
+        associativity,
+        block_size,
+        cache_size,
+        replacement_policy,
+        inclusion_property,
+        next_level = None,
     ):
         super().__init__(
             associativity,

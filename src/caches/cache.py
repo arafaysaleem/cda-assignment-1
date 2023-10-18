@@ -13,8 +13,8 @@ class Cache(ABC):
         associativity: int,
         block_size: int,
         cache_size: int,
-        replacement_policy: Literal[0, 1],
-        inclusion_property: Literal[0, 1],
+        replacement_policy: int,
+        inclusion_property: int,
         next_level: Cache | None = None,
     ):
         self.associativity = associativity
