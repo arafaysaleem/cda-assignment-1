@@ -1,0 +1,18 @@
+# This is a .gitignore file for Python projects.
+
+# Ignore generated files
+*.pyc
+*.pyo
+
+# Ignore virtual environment files
+.venv
+
+# Ignore other files
+*.txt
+*.md
+*.html
+*.css
+*.js
+*.png
+*.jpg
+*.gif

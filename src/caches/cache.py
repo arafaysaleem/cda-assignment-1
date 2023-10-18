@@ -2,7 +2,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from math import log2
 from typing import List, cast
-from blocks.block import Block
+from ..blocks.block import Block
 
 ADDRESS_BITS = 32
 
@@ -21,9 +21,9 @@ class Cache(ABC):
         self.associativity = associativity
         self.block_size = block_size
         self.cache_size = cache_size
-        self.sets = cache_size // (associativity * block_size)
-        self.index_bits = log2(self.sets)
-        self.tag_bits = ADDRESS_BITS - self.index_bits - log2(block_size)
+        self.sets: int = cache_size // (associativity * block_size)
+        self.index_bits: int = int(log2(self.sets))
+        self.tag_bits: int = ADDRESS_BITS - self.index_bits - int(log2(block_size))
         self.blocks: List[List[Block]] = [
             [Block()] * associativity for _ in range(self.sets)
         ]
@@ -148,5 +148,8 @@ class Cache(ABC):
 
         # Convert the tag back to hexadecimal
         tag = hex(int(tag, 2))
+
+        # Convert the index back to decimal
+        index = int(index, 2)
 
         return tag, int(index)

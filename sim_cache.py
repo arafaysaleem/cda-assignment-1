@@ -1,11 +1,11 @@
 import sys
 
-from caches.l2_cache import L2Cache
-from caches.l1_cache import L1Cache
+from src.caches.l2_cache import L2Cache
+from src.caches.l1_cache import L1Cache
 
 
 def main():
-    if len(sys.argv) != 8:
+    if len(sys.argv) != 9:
         print(
             "Usage: python sim_cache.py <BLOCKSIZE> <L1_SIZE> <L1_ASSOC> <L2_SIZE> <L2_ASSOC> <REPLACEMENT_POLICY> <INCLUSION_PROPERTY> <trace_file>"
         )
@@ -28,7 +28,9 @@ def main():
     print(f"L2_SIZE:               {l2_size}")
     print(f"L2_ASSOC:              {l2_assoc}")
     print(f"REPLACEMENT POLICY:    {'LRU' if replacement_policy == 0 else 'FIFO'}")
-    print(f"INCLUSION PROPERTY:    {'non-inclusive' if inclusion_property == 0 else 'inclusive'}")
+    print(
+        f"INCLUSION PROPERTY:    {'non-inclusive' if inclusion_property == 0 else 'inclusive'}"
+    )
     print(f"trace_file:            {trace_file}")
 
     l1_cache = L1Cache(
@@ -48,15 +50,17 @@ def main():
             prev_level=l1_cache,
         )
         l1_cache.next_level = l2_cache
-    
 
-    with open(trace_file, 'r') as file:
+    with open(trace_file, "r") as file:
         for line in file:
-            operation, address = line.split()  # split the line into operation and address
+            (
+                operation,
+                address,
+            ) = line.split()  # split the line into operation and address
 
-            if operation == 'r':
+            if operation == "r":
                 l1_cache.read(address)
-            elif operation == 'w':
+            elif operation == "w":
                 l1_cache.write(address)
 
 
