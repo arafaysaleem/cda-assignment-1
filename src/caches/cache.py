@@ -67,6 +67,7 @@ class Cache:
 
     def write_to_memory(self, address: str) -> None:
         # Maybe increment memory writes?
+        self.direct_write_backs += 1
         pass
 
     def read(self, address):
@@ -87,23 +88,25 @@ class Cache:
             # Finally, allocate the block
             self.allocate_block(set_index, tag, address)
 
-    def read_from_memory(self, address: str) -> Block:
+    def read_from_memory(self, address: str) -> None:
         # Maybe increment memory reads?
-        return Block()
+        pass
 
     def read_hit_block(self, set_index: int, block_index: int, block: Block) -> None:
+        if self.replacement_policy == 1:
+            return
         self.blocks[set_index][block_index] = block.copy_with(
             sequence_number=self.sequence_counter
         )
-        if self.replacement_policy == 0:  # only for LRU
-            self.sequence_counter += 1
+        self.sequence_counter += 1
 
     def write_hit_block(self, set_index: int, block_index: int, block: Block) -> None:
-        self.blocks[set_index][block_index] = block.copy_with(
-            sequence_number=self.sequence_counter, is_dirty=True
-        )
         if self.replacement_policy == 0:  # only for LRU
+            updated_block = block.copy_with(sequence_number=self.sequence_counter, is_dirty=True)
             self.sequence_counter += 1
+        else:
+            updated_block = block.copy_with(is_dirty=True)
+        self.blocks[set_index][block_index] = updated_block
 
     def write_back(self, address) -> None:
         self.write_backs += 1
@@ -129,7 +132,7 @@ class Cache:
 
         if victim_block.is_dirty:
             self.write_back(address)
-        elif (
+        if (
             self.inclusion_property == 1
             and self.prev_level is not None
             and victim_block.is_valid
@@ -143,7 +146,6 @@ class Cache:
         if result is not None:
             block, block_index = result
             if block.is_dirty:
-                self.direct_write_backs += 1
                 self.write_to_memory(address)
                 block = Block()
             else:
@@ -194,9 +196,10 @@ class Cache:
 
     def __str__(self):
         result = f"===== {self.name} contents =====\n"
-        for i, block in enumerate(self.blocks):
+        for i, block_set in enumerate(self.blocks):
             result += f"Set     {i}: "
-            for j in range(len(block)):
-                result += f"    {block[j]}  "
+            post_space = "    " if i < 10 else ("   " if i < 100 else "  ")
+            for block in block_set:
+                result += f"{post_space}{block}  "
             result += "\n"
         return result

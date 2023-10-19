@@ -54,6 +54,7 @@ class CacheHeirarchy:
         print(f"d. number of L1 write misses: {num_l1_write_misses}")
         print(f"e. L1 miss rate:              {l1_miss_rate}")
         print(f"f. number of L1 writebacks:   {num_l1_writebacks}")
+        print(f"f2. number of L1 direct writebacks:   {num_l1_direct_writebacks}")
 
         num_l2_reads = 0
         num_l2_read_misses = 0
