@@ -1,3 +1,4 @@
+from typing import cast
 from dataclasses import dataclass, replace
 
 
@@ -11,3 +12,7 @@ class Block:
 
     def copy_with(self, **kwargs):
         return replace(self, **kwargs)
+    
+    def __str__(self):
+        tag = cast(str, self.tag)
+        return f"{tag[2:]} {"D" if self.is_dirty else " "}"

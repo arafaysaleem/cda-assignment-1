@@ -1,7 +1,6 @@
 import sys
 
-from src.caches.l2_cache import L2Cache
-from src.caches.l1_cache import L1Cache
+from src.caches.cache_heirarchy import CacheHeirarchy
 
 
 def main():
@@ -33,24 +32,19 @@ def main():
     )
     print(f"trace_file:            {trace_file}")
 
-    l1_cache = L1Cache(
-        associativity=l1_assoc,
-        block_size=block_size,
-        cache_size=l1_size,
+    # Create the cache heirarchy
+    cache_heirarchy = CacheHeirarchy(
         replacement_policy=replacement_policy,
         inclusion_property=inclusion_property,
+        block_size=block_size,
     )
+    cache_heirarchy.create_cache(level=1, cache_size=l1_size, associativity=l1_assoc)
     if l2_size > 0:
-        l2_cache = L2Cache(
-            associativity=l2_assoc,
-            block_size=block_size,
-            cache_size=l2_size,
-            replacement_policy=replacement_policy,
-            inclusion_property=inclusion_property,
-            prev_level=l1_cache,
+        cache_heirarchy.create_cache(
+            level=2, cache_size=l2_size, associativity=l2_assoc
         )
-        l1_cache.next_level = l2_cache
 
+    # Read the trace file
     with open(trace_file, "r") as file:
         for line in file:
             (
@@ -59,9 +53,12 @@ def main():
             ) = line.split()  # split the line into operation and address
 
             if operation == "r":
-                l1_cache.read(address)
+                cache_heirarchy.read(address)
             elif operation == "w":
-                l1_cache.write(address)
+                cache_heirarchy.write(address)
+
+    # Print the simulation results
+    cache_heirarchy.print_results()
 
 
 if __name__ == "__main__":

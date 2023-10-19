@@ -1,5 +1,4 @@
 from __future__ import annotations
-from abc import ABC, abstractmethod
 from math import log2
 from typing import List, cast
 from ..blocks.block import Block
@@ -7,17 +6,20 @@ from ..blocks.block import Block
 ADDRESS_BITS = 32
 
 
-class Cache(ABC):
+class Cache:
     def __init__(
         self,
         associativity: int,
         block_size: int,
         cache_size: int,
+        level: int,
         replacement_policy: int,
         inclusion_property: int,
         next_level: Cache | None = None,
         prev_level: Cache | None = None,
     ):
+        self.level = level
+        self.name = f"L{level}"
         self.associativity = associativity
         self.block_size = block_size
         self.cache_size = cache_size
@@ -30,19 +32,45 @@ class Cache(ABC):
         self.replacement_policy = replacement_policy
         self.inclusion_property = inclusion_property
         self.sequence_counter = 0
-        self.read_hits = 0
+        self.reads = 0
         self.read_misses = 0
-        self.write_hits = 0
+        self.writes = 0
         self.write_misses = 0
         self.write_backs = 0
+        self.direct_write_backs = 0
         self.next_level = next_level
         self.prev_level = prev_level
 
-    @abstractmethod
     def write(self, address: str):
+        self.writes += 1
+        tag, index = self.get_address_components(address)
+        if self.level == 1:
+            result = self.get_block(index, tag)
+            if result is not None:
+                block, block_index = result
+                # mark the block as dirty
+                self.write_hit_block(index, block_index, block.copy_with(is_dirty=True))
+            else:
+                self.write_misses += 1
+                if self.next_level is not None:
+                    # Reading from next level because of WBWA policy
+                    self.next_level.read(address)
+                else:
+                    self.read_from_memory(address)
+
+                # By now, the block is assumed to be read from next level or memory
+                # Finally, allocate the block
+                self.allocate_block(index, tag, address, is_dirty=True)
+        else:
+            # Usually a WB by upper level cache for a dirty block
+            self.allocate_block(index, tag, address, is_dirty=True)
+
+    def write_to_memory(self, address: str) -> None:
+        # Maybe increment memory writes?
         pass
 
     def read(self, address):
+        self.reads += 1
         tag, set_index = self.get_address_components(address)
         result = self.get_block(set_index, tag)
         if result is not None:
@@ -52,17 +80,21 @@ class Cache(ABC):
             self.read_misses += 1
             if self.next_level is not None:
                 self.next_level.read(address)
-            # else: read from memory. We skip this bcz we don't want actual I/O
+            else:
+                self.read_from_memory(address)
 
             # By now, the block is assumed to be read from next level or memory
             # Finally, allocate the block
             self.allocate_block(set_index, tag, address)
 
+    def read_from_memory(self, address: str) -> Block:
+        # Maybe increment memory reads?
+        return Block()
+
     def read_hit_block(self, set_index: int, block_index: int, block: Block) -> None:
         self.blocks[set_index][block_index] = block.copy_with(
             sequence_number=self.sequence_counter
         )
-        self.read_hits += 1
         if self.replacement_policy == 0:  # only for LRU
             self.sequence_counter += 1
 
@@ -70,7 +102,6 @@ class Cache(ABC):
         self.blocks[set_index][block_index] = block.copy_with(
             sequence_number=self.sequence_counter, is_dirty=True
         )
-        self.write_hits += 1
         if self.replacement_policy == 0:  # only for LRU
             self.sequence_counter += 1
 
@@ -78,7 +109,8 @@ class Cache(ABC):
         self.write_backs += 1
         if self.next_level is not None:
             self.next_level.write(address)
-        # else: write to memory. We skip this bcz we don't want actual I/O
+        else:
+            self.write_to_memory(address)
 
     def evict(self, set_index: int, address: str) -> tuple[Block, int]:
         ways = self.blocks[set_index]
@@ -110,7 +142,13 @@ class Cache(ABC):
         result = self.get_block(set_index, tag)
         if result is not None:
             block, block_index = result
-            self.blocks[set_index][block_index] = block.copy_with(is_valid=False)
+            if block.is_dirty:
+                self.direct_write_backs += 1
+                self.write_to_memory(address)
+                block = Block()
+            else:
+                block = block.copy_with(is_valid=False)
+            self.blocks[set_index][block_index] = block
             if self.prev_level is not None:
                 self.prev_level.invalidate(address)
 
@@ -131,7 +169,7 @@ class Cache(ABC):
     def get_block(self, set_index: int, tag: str) -> tuple[Block, int] | None:
         ways = self.blocks[set_index]
         for i, block in enumerate(ways):
-            if block.tag == tag:
+            if block.tag == tag and block.is_valid:
                 return block, i
         return None
 
@@ -153,3 +191,12 @@ class Cache(ABC):
         index = int(index, 2)
 
         return tag, int(index)
+
+    def __str__(self):
+        result = f"===== {self.name} contents =====\n"
+        for i, block in enumerate(self.blocks):
+            result += f"Set     {i}: "
+            for j in range(len(block)):
+                result += f"    {block[j]}  "
+            result += "\n"
+        return result
