@@ -33,7 +33,7 @@ class CacheHeirarchy:
         self.cache_levels[0].write(address)
 
     def __str__(self) -> str:
-        return "\n".join([str(cache) for cache in self.cache_levels])
+        return "".join([str(cache) for cache in self.cache_levels])
 
     def __print_measurements(self):
         # Store the numbers in local variables
@@ -67,7 +67,7 @@ class CacheHeirarchy:
             num_l2_read_misses = self.cache_levels[1].read_misses
             num_l2_writes = self.cache_levels[1].writes
             num_l2_write_misses = self.cache_levels[1].write_misses
-            l2_miss_rate = num_l2_read_misses / num_l2_reads
+            l2_miss_rate = format(num_l2_read_misses / num_l2_reads, '.6f')
             num_l2_writebacks = self.cache_levels[1].write_backs
             total_memory_traffic = num_l2_read_misses + num_l2_write_misses + num_l2_writebacks
             if self.inclusion_property == 1:
@@ -77,11 +77,10 @@ class CacheHeirarchy:
         print(f"h. number of L2 read misses:  {num_l2_read_misses}")
         print(f"i. number of L2 writes:       {num_l2_writes}")
         print(f"j. number of L2 write misses: {num_l2_write_misses}")
-        print(f"k. L2 miss rate:              {format(l2_miss_rate, '.6f')}")
+        print(f"k. L2 miss rate:              {l2_miss_rate}")
         print(f"l. number of L2 writebacks:   {num_l2_writebacks}")
-        print(f"m. total memory traffic:      {total_memory_traffic}")
-
+        print(f"m. total memory traffic:      {total_memory_traffic}", end="\n")
 
     def print_results(self):
-        print(self)
+        print(self, end="")
         self.__print_measurements()

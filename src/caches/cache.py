@@ -194,9 +194,9 @@ class Cache:
     def __str__(self):
         result = f"===== {self.name} contents =====\n"
         for i, block_set in enumerate(self.blocks):
-            result += f"Set     {i}: "
-            post_space = "    " if i < 10 else ("   " if i < 100 else "  ")
+            post_space = "      " if i < 10 else ("     " if i < 100 else "    ")
+            result += f"Set     {i}:{post_space}"
             for block in block_set:
-                result += f"{post_space}{block}  "
+                result += f"{block}  "
             result += "\n"
         return result
