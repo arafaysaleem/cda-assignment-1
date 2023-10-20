@@ -52,9 +52,8 @@ class CacheHeirarchy:
         print(f"b. number of L1 read misses:  {num_l1_read_misses}")
         print(f"c. number of L1 writes:       {num_l1_writes}")
         print(f"d. number of L1 write misses: {num_l1_write_misses}")
-        print(f"e. L1 miss rate:              {l1_miss_rate}")
+        print(f"e. L1 miss rate:              {format(l1_miss_rate, '.6f')}")
         print(f"f. number of L1 writebacks:   {num_l1_writebacks}")
-        print(f"f2. number of L1 direct writebacks:   {num_l1_direct_writebacks}")
 
         num_l2_reads = 0
         num_l2_read_misses = 0
@@ -78,7 +77,7 @@ class CacheHeirarchy:
         print(f"h. number of L2 read misses:  {num_l2_read_misses}")
         print(f"i. number of L2 writes:       {num_l2_writes}")
         print(f"j. number of L2 write misses: {num_l2_write_misses}")
-        print(f"k. L2 miss rate:              {l2_miss_rate}")
+        print(f"k. L2 miss rate:              {format(l2_miss_rate, '.6f')}")
         print(f"l. number of L2 writebacks:   {num_l2_writebacks}")
         print(f"m. total memory traffic:      {total_memory_traffic}")
 

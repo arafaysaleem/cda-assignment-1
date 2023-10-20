@@ -43,27 +43,24 @@ class Cache:
 
     def write(self, address: str):
         self.writes += 1
-        tag, index = self.get_address_components(address)
-        if self.level == 1:
-            result = self.get_block(index, tag)
-            if result is not None:
-                block, block_index = result
-                # mark the block as dirty
-                self.write_hit_block(index, block_index, block.copy_with(is_dirty=True))
-            else:
-                self.write_misses += 1
-                if self.next_level is not None:
-                    # Reading from next level because of WBWA policy
-                    self.next_level.read(address)
-                else:
-                    self.read_from_memory(address)
-
-                # By now, the block is assumed to be read from next level or memory
-                # Finally, allocate the block
-                self.allocate_block(index, tag, address, is_dirty=True)
+        tag, set_index = self.get_address_components(address)
+        result = self.get_block(set_index, tag)
+        if result is not None:
+            block, block_index = result
+            # mark the block as dirty
+            self.write_hit_block(set_index, block_index, block.copy_with(is_dirty=True))
         else:
-            # Usually a WB by upper level cache for a dirty block
-            self.allocate_block(index, tag, address, is_dirty=True)
+            self.write_misses += 1
+            _, block_index = self.evict(set_index)
+            if self.next_level is not None:
+                # Reading from next level because of WBWA policy
+                self.next_level.read(address)
+            else:
+                self.read_from_memory(address)
+
+            # By now, the block is assumed to be read from next level or memory
+            # Finally, allocate the block
+            self.allocate_block(set_index, block_index, tag, address, is_dirty=True)
 
     def write_to_memory(self, address: str) -> None:
         # Maybe increment memory writes?
@@ -79,6 +76,7 @@ class Cache:
             self.read_hit_block(set_index, block_index, block)
         else:
             self.read_misses += 1
+            _, block_index = self.evict(set_index)
             if self.next_level is not None:
                 self.next_level.read(address)
             else:
@@ -86,7 +84,7 @@ class Cache:
 
             # By now, the block is assumed to be read from next level or memory
             # Finally, allocate the block
-            self.allocate_block(set_index, tag, address)
+            self.allocate_block(set_index, block_index, tag, address)
 
     def read_from_memory(self, address: str) -> None:
         # Maybe increment memory reads?
@@ -115,7 +113,7 @@ class Cache:
         else:
             self.write_to_memory(address)
 
-    def evict(self, set_index: int, address: str) -> tuple[Block, int]:
+    def evict(self, set_index: int) -> tuple[Block, int]:
         ways = self.blocks[set_index]
         # Both replacement policies use the same concept (kick lowest sequence number), hence we don't do if-else
         # if self.replacement_policy == 0 or self.replacement_policy == 1:
@@ -131,7 +129,7 @@ class Cache:
                 victim_block_index = i
 
         if victim_block.is_dirty:
-            self.write_back(address)
+            self.write_back(victim_block.address)
         if (
             self.inclusion_property == 1
             and self.prev_level is not None
@@ -155,9 +153,8 @@ class Cache:
                 self.prev_level.invalidate(address)
 
     def allocate_block(
-        self, set_index: int, tag: str, address: str, is_dirty=False
+        self, set_index: int, block_index: int, tag: str, address: str, is_dirty=False
     ) -> None:
-        _, block_index = self.evict(set_index, address)
         new_block = Block(
             tag=tag,
             address=address,
