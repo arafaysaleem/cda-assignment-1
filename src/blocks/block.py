@@ -15,4 +15,4 @@ class Block:
     
     def __str__(self):
         tag = cast(str, self.tag)
-        return f"{tag[2:]} {"D" if self.is_dirty else " "}"
+        return f"{tag[2:] if tag is not None else "  -   "} {"D" if self.is_dirty else " "}"
