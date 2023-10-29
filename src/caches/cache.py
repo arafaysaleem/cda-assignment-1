@@ -187,7 +187,7 @@ class Cache:
         tag = hex(int(tag, 2))
 
         # Convert the index back to decimal
-        index = int(index, 2)
+        index = int(index if len(index) > 0 else '0', 2)
 
         return tag, int(index)
 
